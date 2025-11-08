@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-set -euo pipefail
-./build/hydro examples/return_ok.hy
+./build/hydro examples/exit_ok.hy
 ./out
 echo "exit code: $?"

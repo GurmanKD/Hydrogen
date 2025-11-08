@@ -9,6 +9,9 @@
 - Direct tokens → NASM codegen (no AST yet)
 - Assembles with `nasm` and links with `ld` from the compiler
 - Demo program returns the chosen exit code (0–255)
+Tokenizer class
+Parser + AST (Exit -> Expression(IntLiteral))
+Generator emits NASM from AST
 
 ## Requirements
 - Linux (or WSL)
