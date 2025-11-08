@@ -41,7 +41,7 @@ Install on Ubuntu:
 sudo apt update
 sudo apt install -y nasm build-essential cmake
 ```
-🏗️ Build & Run
+### 🏗️ Build & Run
 Using helper scripts:
 ```bash
 ./scripts/build.sh
@@ -56,31 +56,39 @@ cmake --build build -j
 ./out
 echo $?
 ```
-🧠 How it works
-Tokenize
+### 🧠 How it works
+1. Tokenize
 ```bash
 exit 21;
 ```
 → [EXIT, INT_LITERAL(21), SEMICOLON]
-Parse → AST
+2. Parse → AST
+```bash
 Exit {
   Expression {
     IntLiteral(21)
   }
 }
-Generate NASM
+```
+3. Generate NASM
+```bash
 global _start
 _start:
     mov     rax, 60      ; sys_exit
     mov     rdi, 21      ; exit code
     syscall
-Assemble + Link
+```
+4. Assemble + Link
+```bash
 nasm -felf64 out.asm
 ld -o out out.o
-Run
+```
+5. Run
+```bash
 ./out
 echo $?   # → 21
-🧱 Project Structure
+```
+## 🧱 Project Structure
 ```bash
 Hydrogen/
 ├─ src/
@@ -99,7 +107,8 @@ Hydrogen/
 └─ README.md
 ```
 🗓️ Milestone History
-Version	Stage	Highlights
-v0.1-part1	Minimal compiler	tokens → NASM → ELF
-v0.2-part2	Tokenizer + Parser + AST + Generator	full pipeline implemented
+Version	| Stage |	Highlights
+v0.1-part1 | Minimal compiler	| tokens → NASM → ELF
+v0.2-part2	| Tokenizer + Parser + AST + Generator	| full pipeline implemented
+
 🧩 Hydrogen is an educational experiment in building a self-hosting compiler from scratch — one step at a time.
