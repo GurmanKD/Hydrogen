@@ -1,0 +1,9 @@
+# build artifacts
+/build/
+/out
+/out.o
+/out.asm
+/.vs
+/.vscode
+compile_commands.json
+.DS_Store
