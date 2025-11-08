@@ -2,6 +2,8 @@
 
 **Goal:** from a single statement `return <int>;` produce x86-64 Linux assembly (NASM), assemble to ELF, and run.
 
+### Notion Notes: https://l1nq.com/HydrogenPart1NotionNotes
+
 ## Features (so far)
 - Lexer for: `return`, integer literals, `;`
 - Direct tokens → NASM codegen (no AST yet)
