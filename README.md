@@ -107,8 +107,10 @@ Hydrogen/
 └─ README.md
 ```
 🗓️ Milestone History
-Version	| Stage |	Highlights
-v0.1-part1 | Minimal compiler	| tokens → NASM → ELF
-v0.2-part2	| Tokenizer + Parser + AST + Generator	| full pipeline implemented
+| Version | Stage | Highlights |
+|----------|--------|------------|
+| **v0.1-part1** | Minimal compiler | tokens → NASM → ELF |
+| **v0.2-part2** | Tokenizer + Parser + AST + Generator | full pipeline implemented |
+
 
 🧩 Hydrogen is an educational experiment in building a self-hosting compiler from scratch — one step at a time.
