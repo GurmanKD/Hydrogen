@@ -1,51 +1,125 @@
 #pragma once
 #include <optional>
+#include <string>
+#include <variant>
 #include <vector>
+#include <iostream>
+
 #include "tokenization.hpp"
 
+namespace hy {
 namespace node {
-  struct Expression {
-    Token int_literal; // must be TokenType::IntLiteral
-  };
-  struct Exit {
-    Expression expr;
-  };
-}
+
+struct ExprIntLiteral { Token literal; };
+struct ExprIdent      { Token ident;   };
+
+using Expression = std::variant<ExprIntLiteral, ExprIdent>;
+
+struct StatementExit { Expression expr; };
+struct StatementLet  { Token ident; Expression expr; };
+
+using Statement = std::variant<StatementExit, StatementLet>;
+
+struct Program { std::vector<Statement> statements; };
+
+} // namespace node
 
 class Parser {
 public:
   explicit Parser(std::vector<Token> tokens) : m_tokens(std::move(tokens)) {}
 
-  std::optional<node::Exit> parse() {
-    // Expect: Exit Expression Semicolon
-    if (!peek().has_value() || peek()->type != TokenType::Exit) return std::nullopt;
-    consume(); // 'exit'
+  std::optional<node::Program> parseProgram() {
+    node::Program prog;
+    m_index = 0;
 
-    auto expr = parseExpression();
-    if (!expr.has_value()) return std::nullopt;
+    while (auto t = peek(0)) {
+      auto st = parseStatement();
+      if (!st) {
+        std::cerr << "Invalid statement.\n";
+        return std::nullopt;
+      }
+      prog.statements.push_back(*st);
+    }
 
-    if (!peek().has_value() || peek()->type != TokenType::Semicolon)
-      return std::nullopt;
-    consume(); // ';'
-
-    return node::Exit{*expr};
+    return prog;
   }
 
 private:
+  // ---- statments ----
+  std::optional<node::Statement> parseStatement() {
+    auto t = peek(0);
+    if (!t) return std::nullopt;
+
+    // exit '(' Expression ')' ';'
+    if (t->type == TokenType::Exit) {
+      consume(); // exit
+      if (!peekIs(TokenType::OpenParen))  return err("expected '(' after exit");
+      consume();
+      auto expr = parseExpression();
+      if (!expr) return err("invalid expression inside exit(...)");
+      if (!peekIs(TokenType::CloseParen)) return err("expected ')' after expression");
+      consume();
+      if (!peekIs(TokenType::Semi))       return err("expected ';' after exit(...)");
+      consume();
+      return node::Statement{ node::StatementExit{ *expr } };
+    }
+
+    // let IDENT '=' Expression ';'
+    if (t->type == TokenType::Let) {
+      consume(); // let
+      if (!peekIs(TokenType::Ident)) return err("expected identifier after 'let'");
+      Token ident = consume();
+      if (!peekIs(TokenType::Equals)) return err("expected '=' after identifier");
+      consume();
+      auto expr = parseExpression();
+      if (!expr) return err("invalid expression in variable initializer");
+      if (!peekIs(TokenType::Semi)) return err("expected ';' after variable declaration");
+      consume();
+      return node::Statement{ node::StatementLet{ ident, *expr } };
+    }
+
+    return std::nullopt;
+  }
+
+  // ---- expressions ----
   std::optional<node::Expression> parseExpression() {
-    if (peek().has_value() && peek()->type == TokenType::IntLiteral) {
-      Token t = consume();
-      return node::Expression{t};
+    auto t = peek(0);
+    if (!t) return std::nullopt;
+
+    if (t->type == TokenType::IntLiteral) {
+      Token lit = consume();
+      return node::Expression{ node::ExprIntLiteral{ lit } };
+    }
+    if (t->type == TokenType::Ident) {
+      Token id = consume();
+      return node::Expression{ node::ExprIdent{ id } };
     }
     return std::nullopt;
   }
 
-  [[nodiscard]] std::optional<Token> peek(int ahead = 1) const {
-    if (m_index + static_cast<size_t>(ahead) > m_tokens.size()) return std::nullopt;
-    return m_tokens.at(m_index + ahead - 1);
+  // ---- helpers ----
+  std::optional<node::Statement> err(const char* msg) {
+    std::cerr << msg << "\n";
+    return std::nullopt;
   }
-  Token consume() { return m_tokens.at(m_index++); }
+
+  bool peekIs(TokenType tt, size_t offset = 0) const {
+    auto t = peek(offset);
+    return t && t->type == tt;
+  }
+
+  std::optional<Token> peek(size_t offset = 0) const {
+    const size_t i = m_index + offset;
+    if (i < m_tokens.size()) return m_tokens[i];
+    return std::nullopt;
+  }
+
+  Token consume() {
+    return m_tokens[m_index++];
+  }
 
   std::vector<Token> m_tokens;
-  std::size_t m_index = 0;
+  size_t m_index{0};
 };
+
+} // namespace hy
